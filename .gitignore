@@ -1,3 +1,14 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Exported builds
+/export/
+
+# Logs and temp
+*.log
+*.tmp
+
+# IDE
+.vscode/
+.idea/
