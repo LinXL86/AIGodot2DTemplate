@@ -6,6 +6,7 @@
 
 # Exported builds
 /export/
+export_presets.cfg
 
 # Logs and temp
 *.log

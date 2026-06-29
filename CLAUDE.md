@@ -97,8 +97,8 @@ Only for: global state (`GameState`), event bus (`EventBus`), utility functions 
 Autoloads must NOT hold direct references to scene nodes — use signals.
 
 Template includes two autoloads out of the box:
-- **EventBus** — global signal bus; add project signals here
-- **GameState** — global state variables; add fields as needed
+- **EventBus** — global signal bus; add project signals here as `signal my_event`
+- **GameState** — global state, resolution presets, pause handling, input setup
 
 ## Performance
 
@@ -117,6 +117,8 @@ Template includes two autoloads out of the box:
 ## Template Features
 
 - **Window**: 1280×720 (design resolution), resizable, canvas_items stretch + expand
+- **Stretch**: expand mode means visible area grows with window size — constrain with Camera2D limits if you want a fixed play area. Switch to `keep` in project settings if you prefer letterboxing.
 - **InputMap** pre-configured: move (WASD/Arrow), ui_accept (Space/Enter), ui_cancel (Esc), interact (E)
-- **DebugOverlay**: FPS counter included as component, attached to Main scene
-- **Main scene**: `scenes/main.tscn` — Node2D root, ready to build on
+- **DebugOverlay**: FPS + frame time, hidden in release builds, F3 to toggle
+- **Main scene**: `scenes/main.tscn` — Node2D root with Camera2D, ready to build on
+- **Pause**: Esc emits `GameState.pause_toggled` signal and sets `get_tree().paused`
