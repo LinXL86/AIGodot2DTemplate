@@ -1,6 +1,8 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+/ios/
+/web/
 
 # Exported builds
 /export/
@@ -8,7 +10,12 @@
 # Logs and temp
 *.log
 *.tmp
+*.translation
 
 # IDE
 .vscode/
 .idea/
+
+# Claude Code
+.claude/
+memory/

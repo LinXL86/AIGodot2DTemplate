@@ -1,4 +1,4 @@
-# CLAUDE.md — Don't Touch Button (Godot 4.6 + Jolt Physics 3D)
+# CLAUDE.md — Godot 4.6 2D Template
 
 ## Project Structure
 
@@ -10,12 +10,12 @@ res://
 │   ├── levels/      # 关卡/地图
 │   └── props/       # 道具、可交互物
 ├── scripts/         # 共享 GDScript (.gd)
-│   ├── autoload/    # 全局单例
-│   ├── components/  # 可复用组件
+│   ├── autoload/    # 全局单例（EventBus, GameState）
+│   ├── components/  # 可复用组件（@export 注入）
 │   └── utilities/   # 纯工具
 ├── assets/          # 美术资源
 │   ├── sprites/  sounds/  fonts/  shaders/
-└── docs/            # 文档
+└── docs/            # 文档（.gdignore 阻止 Godot 导入）
 ```
 
 - 场景根节点脚本跟 `.tscn` 放在一起，只有被多个场景共享的脚本才放 `scripts/`
@@ -29,15 +29,18 @@ res://
 | 函数/变量/信号 | snake_case | `func take_damage()` `var max_health` |
 | 常量/枚举值 | UPPER_SNAKE | `const MAX_SPEED = 400.0` |
 | 私有成员/方法 | `_` 前缀 | `var _current_health` `func _apply_knockback()` |
-| 节点名 | PascalCase | `HealthBar` `CollisionShape3D` |
+| 节点名 | PascalCase | `HealthBar` `CollisionShape2D` |
 | 信号回调 | `_on_<node>_<signal>` | `func _on_button_pressed()` |
+
+- 禁止保留默认名称如 `Node2D`、`ColorRect`、`Sprite2D3`
+- 同类节点用数字后缀：`EnemySpawnPoint1`、`EnemySpawnPoint2`
 
 ## GDScript Rules
 
 ### Always use type hints
 ```gdscript
 var speed: float = 200.0
-func deal_damage(target: Node3D, amount: int) -> bool:
+func deal_damage(target: Node2D, amount: int) -> bool:
 ```
 Exception: temp variables in `_ready()`.
 
@@ -47,6 +50,9 @@ Exception: temp variables in `_ready()`.
 3. `_ready()` → `_process()` → `_physics_process()`
 4. signal callbacks
 5. public methods → private methods
+
+### Indentation
+- Tab indentation (per `.editorconfig`)
 
 ### Early return over deep nesting
 ```gdscript
@@ -60,23 +66,28 @@ func process_target(target: Node) -> void:
 
 ### Dependencies via @export, not hardcoded paths
 ```gdscript
-@export var hurtbox: Area3D          # good
-var hurtbox: Area3D = $"../../../Hurtbox"  # bad
+@export var hitbox: Area2D              # good
+var hitbox: Area2D = $"../../../Hitbox" # bad
 ```
 
 ### Use `tr()` for user-facing strings
 ```gdscript
 label.text = tr("Press Start")
 ```
+Format with interpolation: `"Health: %d/%d" % [current, max_health]`
 
 ### Comments
 - Don't comment WHAT the code does — code should be self-explanatory
 - Only comment WHY when it's non-obvious (workarounds, design decisions)
 
+### Signal connections
+- Code-connected signals in `_ready()`, grouped together
+- Editor-connected signals use `_on_<node>_<signal>` naming
+
 ## Scene Design
 
-- **Downward calls, upward signals** — parent calls child methods directly; child notifies parent via signals
-- **Single responsibility** — one scene = one job. Split if you need "and" to describe it
+- **Downward calls, upward signals** — parent calls child methods directly; child notifies parent via signals. Sibling nodes communicate through common ancestor or EventBus.
+- **Single responsibility** — one scene = one job. Split if you need "and" to describe it.
 - **@export injection** — never hardcode node paths
 - Each scene should be runnable standalone (F6) without depending on a launcher level
 
@@ -85,12 +96,16 @@ label.text = tr("Press Start")
 Only for: global state (`GameState`), event bus (`EventBus`), utility functions (`Utils`).
 Autoloads must NOT hold direct references to scene nodes — use signals.
 
+Template includes two autoloads out of the box:
+- **EventBus** — global signal bus; add project signals here
+- **GameState** — global state variables; add fields as needed
+
 ## Performance
 
 - `create_tween()` over `Tween` nodes
 - `@onready` cache over `get_node()` in `_process()`
-- `CharacterBody3D` + physics over manual collision
-- `MultiMeshInstance3D` for bulk identical objects
+- `CharacterBody2D` + physics over manual collision
+- `MultiMeshInstance2D` for bulk identical sprites
 
 ## Workflow
 
@@ -98,3 +113,10 @@ Autoloads must NOT hold direct references to scene nodes — use signals.
 - Small commits — commit whenever the scene runs
 - New interactions → signal + external response pattern
 - Prefer `.tres` over `.res` for version control friendliness
+
+## Template Features
+
+- **Window**: 1280×720 (design resolution), resizable, canvas_items stretch + expand
+- **InputMap** pre-configured: move (WASD/Arrow), ui_accept (Space/Enter), ui_cancel (Esc), interact (E)
+- **DebugOverlay**: FPS counter included as component, attached to Main scene
+- **Main scene**: `scenes/main.tscn` — Node2D root, ready to build on
