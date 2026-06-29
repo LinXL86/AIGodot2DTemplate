@@ -98,7 +98,7 @@ Autoloads must NOT hold direct references to scene nodes — use signals.
 
 Template includes two autoloads out of the box:
 - **EventBus** — global signal bus; add project signals here as `signal my_event`
-- **GameState** — global state, resolution presets, pause handling, input setup
+- **GameState** — global state, resolution presets
 
 ## Performance
 
@@ -121,4 +121,3 @@ Template includes two autoloads out of the box:
 - **InputMap** pre-configured: move (WASD/Arrow), ui_accept (Space/Enter), ui_cancel (Esc), interact (E)
 - **DebugOverlay**: FPS counter, hidden in release builds
 - **Main scene**: `scenes/main.tscn` — Node2D root, ready to build on
-- **Pause**: Esc emits `GameState.pause_toggled` signal and sets `get_tree().paused`
