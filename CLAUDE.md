@@ -119,6 +119,6 @@ Template includes two autoloads out of the box:
 - **Window**: 1280×720 (design resolution), resizable, canvas_items stretch + expand
 - **Stretch**: expand mode means visible area grows with window size — constrain with Camera2D limits if you want a fixed play area. Switch to `keep` in project settings if you prefer letterboxing.
 - **InputMap** pre-configured: move (WASD/Arrow), ui_accept (Space/Enter), ui_cancel (Esc), interact (E)
-- **DebugOverlay**: FPS + frame time, hidden in release builds, F3 to toggle
-- **Main scene**: `scenes/main.tscn` — Node2D root with Camera2D, ready to build on
+- **DebugOverlay**: FPS counter, hidden in release builds
+- **Main scene**: `scenes/main.tscn` — Node2D root, ready to build on
 - **Pause**: Esc emits `GameState.pause_toggled` signal and sets `get_tree().paused`
