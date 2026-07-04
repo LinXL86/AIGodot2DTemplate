@@ -1,6 +1,6 @@
-# CLAUDE.md — Godot 4.6 2D Template
+# CLAUDE.md — Godot 4.6 2D 模板
 
-## Project Structure
+## 项目结构
 
 ```
 res://
@@ -20,7 +20,7 @@ res://
 
 - 场景根节点脚本跟 `.tscn` 放在一起，只有被多个场景共享的脚本才放 `scripts/`
 
-## Naming
+## 命名规范
 
 | 类型 | 规范 | 示例 |
 |------|------|------|
@@ -35,26 +35,26 @@ res://
 - 禁止保留默认名称如 `Node2D`、`ColorRect`、`Sprite2D3`
 - 同类节点用数字后缀：`EnemySpawnPoint1`、`EnemySpawnPoint2`
 
-## GDScript Rules
+## GDScript 规则
 
-### Always use type hints
+### 始终使用类型注解
 ```gdscript
 var speed: float = 200.0
 func deal_damage(target: Node2D, amount: int) -> bool:
 ```
-Exception: temp variables in `_ready()`.
+例外：`_ready()` 中的临时变量。
 
-### Code order within a file
+### 文件内代码顺序
 1. `class_name` / `extends`
 2. signals → enums → constants → `@export` vars → public vars → private vars → `@onready` vars
 3. `_ready()` → `_process()` → `_physics_process()`
 4. signal callbacks
 5. public methods → private methods
 
-### Indentation
-- Tab indentation (per `.editorconfig`)
+### 缩进
+- Tab 缩进（遵循 `.editorconfig`）
 
-### Early return over deep nesting
+### 提前返回优于深层嵌套
 ```gdscript
 func process_target(target: Node) -> void:
     if not is_instance_valid(target):
@@ -64,60 +64,62 @@ func process_target(target: Node) -> void:
     _apply_damage(target)
 ```
 
-### Dependencies via @export, not hardcoded paths
+### 依赖通过 @export 注入，禁止硬编码路径
 ```gdscript
-@export var hitbox: Area2D              # good
-var hitbox: Area2D = $"../../../Hitbox" # bad
+@export var hitbox: Area2D              # 正确
+var hitbox: Area2D = $"../../../Hitbox" # 错误
 ```
 
-### Use `tr()` for user-facing strings
+### 用户可见字符串使用 `tr()`
 ```gdscript
 label.text = tr("Press Start")
 ```
-Format with interpolation: `"Health: %d/%d" % [current, max_health]`
+格式化使用插值：`"Health: %d/%d" % [current, max_health]`
 
-### Comments
-- Don't comment WHAT the code does — code should be self-explanatory
-- Only comment WHY when it's non-obvious (workarounds, design decisions)
+### 注释
+- 不要注释代码做了什么——代码应自解释
+- 只在非显而易见时注释为什么（workaround、设计决策）
 
-### Signal connections
-- Code-connected signals in `_ready()`, grouped together
-- Editor-connected signals use `_on_<node>_<signal>` naming
+### 信号连接
+- 代码连接的信号集中在 `_ready()` 中
+- 编辑器连接的信号使用 `_on_<node>_<signal>` 命名
 
-## Scene Design
+## 场景设计
 
-- **Downward calls, upward signals** — parent calls child methods directly; child notifies parent via signals. Sibling nodes communicate through common ancestor or EventBus.
-- **Single responsibility** — one scene = one job. Split if you need "and" to describe it.
-- **@export injection** — never hardcode node paths
-- Each scene should be runnable standalone (F6) without depending on a launcher level
+- **向下调用，向上通知** — 父节点直接调用子节点方法；子节点通过信号通知父节点。兄弟节点通过共同祖先或 EventBus 通信。
+- **单一职责** — 一个场景只做一件事。如果需要用"和"来描述它，就该拆分。
+- **@export 注入** — 禁止硬编码节点路径
+- 每个场景应可独立运行（F6），不依赖启动关卡
+- **不手写 `.tscn`** — 场景文件一律在 Godot 编辑器中创建和编辑
 
-## Autoload Usage
+## Autoload 使用
 
-Only for: global state (`GameState`), event bus (`EventBus`), utility functions (`Utils`).
-Autoloads must NOT hold direct references to scene nodes — use signals.
+仅用于：全局状态（`GameState`）、事件总线（`EventBus`）、工具函数（`Utils`）。
+Autoload 禁止持有场景节点的直接引用——使用信号。
 
-Template includes two autoloads out of the box:
-- **EventBus** — global signal bus; add project signals here as `signal my_event`
-- **GameState** — global state, resolution presets
+模板自带两个 autoload：
+- **EventBus** — 全局信号总线；在此添加项目信号：`signal my_event`
+- **GameState** — 全局状态，分辨率预设
 
-## Performance
+## 性能
 
-- `create_tween()` over `Tween` nodes
-- `@onready` cache over `get_node()` in `_process()`
-- `CharacterBody2D` + physics over manual collision
-- `MultiMeshInstance2D` for bulk identical sprites
+- 优先使用 `create_tween()` 而非 `Tween` 节点
+- `_process()` 中用 `@onready` 缓存替代 `get_node()`
+- 优先使用 `CharacterBody2D` + 物理系统而非手动碰撞
+- 大量相同精灵用 `MultiMeshInstance2D`
 
-## Workflow
+## 工作流
 
-- Get it running first, optimize later
-- Small commits — commit whenever the scene runs
-- New interactions → signal + external response pattern
-- Prefer `.tres` over `.res` for version control friendliness
+- **一次一个功能** — 跑通再叠下一个，避免一次写太多导致调试困难
+- 先跑通再优化
+- 小步提交——场景能跑就提交
+- 新交互 → 信号 + 外部响应模式
+- 优先使用 `.tres` 而非 `.res`，便于版本控制
 
-## Template Features
+## 模板功能
 
-- **Window**: 1280×720 (design resolution), resizable, canvas_items stretch + expand
-- **Stretch**: expand mode means visible area grows with window size — constrain with Camera2D limits if you want a fixed play area. Switch to `keep` in project settings if you prefer letterboxing.
-- **InputMap** pre-configured: move (WASD/Arrow), ui_accept (Space/Enter), ui_cancel (Esc), interact (E)
-- **DebugOverlay**: FPS counter, hidden in release builds
-- **Main scene**: `scenes/main.tscn` — Node2D root, ready to build on
+- **窗口**：1280×720（设计分辨率），可调整大小，canvas_items stretch + expand
+- **拉伸**：expand 模式表示可见区域随窗口增大——如需固定游戏区域用 Camera2D limits 约束。如需留黑边，在项目设置中切换为 `keep`。
+- **InputMap** 预配置：move（WASD/方向键）、ui_accept（空格/回车）、ui_cancel（Esc）、interact（E）
+- **DebugOverlay**：FPS 计数器，发布版本自动隐藏
+- **主场景**：`scenes/main.tscn` — Node2D 根节点，可在此开始搭建
