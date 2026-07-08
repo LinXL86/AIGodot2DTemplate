@@ -1,58 +1,8 @@
 [gd_scene format=3 uid="uid://ped5ck1wsaxa"]
 
 [ext_resource type="Script" uid="uid://cvxth3ctenvo6" path="res://scripts/components/debug_overlay.gd" id="1_debug_overlay"]
-[ext_resource type="Script" path="res://scripts/components/free_look_camera.gd" id="2_free_look_camera"]
 
-[sub_resource type="ProceduralSkyMaterial" id="1"]
-sky_top_color = Color(0.047, 0.545, 0.945, 1)
-sky_horizon_color = Color(0.698, 0.808, 0.871, 1)
-ground_bottom_color = Color(0.271, 0.302, 0.337, 1)
-ground_horizon_color = Color(0.698, 0.808, 0.871, 1)
-
-[sub_resource type="Sky" id="2"]
-sky_material = SubResource("1")
-
-[sub_resource type="Environment" id="env_main"]
-background_mode = 2
-background_sky = SubResource("2")
-tonemap_mode = 3
-glow_enabled = false
-
-[sub_resource type="StandardMaterial3D" id="mat_ground"]
-albedo_color = Color(0.25, 0.25, 0.28, 1)
-metallic = 0.0
-roughness = 0.8
-
-[sub_resource type="BoxMesh" id="box_ground"]
-size = Vector3(20, 0.1, 20)
-material = SubResource("mat_ground")
-
-[sub_resource type="BoxShape3D" id="box_ground_collision"]
-size = Vector3(20, 0.2, 20)
-
-[node name="Main" type="Node3D" unique_id=267622811]
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("env_main")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.707107, -0.353553, 0.612372, 0, 0.866025, 0.5, -0.707107, -0.353553, 0.612372, 0, 0, 0)
-shadow_enabled = true
-light_energy = 1.5
-
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 8)
-script = ExtResource("2_free_look_camera")
-
-[node name="Ground" type="Node3D" parent="."]
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
-mesh = SubResource("box_ground")
-
-[node name="StaticBody3D" type="StaticBody3D" parent="Ground"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/StaticBody3D"]
-shape = SubResource("box_ground_collision")
+[node name="Main" type="Node2D" unique_id=267622811]
 
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=307970774]
 script = ExtResource("1_debug_overlay")

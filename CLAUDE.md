@@ -1,4 +1,4 @@
-# CLAUDE.md — Godot 4.6 3D 模板
+# CLAUDE.md — Godot 4.6 2D 模板
 
 ## 项目结构
 
@@ -8,16 +8,12 @@ res://
 │   ├── actors/      # 玩家、敌人、NPC
 │   ├── ui/          # UI 场景
 │   ├── levels/      # 关卡/地图
-│   ├── props/       # 道具、可交互物
-│   └── environment/ # 环境场景（光照探头、反射探头、天空）
+│   └── props/       # 道具、可交互物
 ├── scripts/         # 共享 GDScript (.gd)
 │   ├── autoload/    # 全局单例（EventBus, GameState）
 │   ├── components/  # 可复用组件（@export 注入）
 │   └── utilities/   # 纯工具
 ├── assets/          # 美术资源
-│   ├── models/      # .glb/.obj 模型文件
-│   ├── textures/    # 贴图（漫反射、法线、ORM）
-│   ├── materials/   # .tres 材质资源
 │   ├── sprites/  sounds/  fonts/  shaders/
 └── docs/            # 文档（.gdignore 阻止 Godot 导入）
 ```
@@ -33,25 +29,18 @@ res://
 | 函数/变量/信号 | snake_case | `func take_damage()` `var max_health` |
 | 常量/枚举值 | UPPER_SNAKE | `const MAX_SPEED = 400.0` |
 | 私有成员/方法 | `_` 前缀 | `var _current_health` `func _apply_knockback()` |
-| 节点名 | PascalCase | `HealthBar` `CollisionShape3D` |
+| 节点名 | PascalCase | `HealthBar` `CollisionShape2D` |
 | 信号回调 | `_on_<node>_<signal>` | `func _on_button_pressed()` |
 
-- 禁止保留默认名称如 `Node3D`、`MeshInstance3D`、`ColorRect`
+- 禁止保留默认名称如 `Node2D`、`ColorRect`、`Sprite2D3`
 - 同类节点用数字后缀：`EnemySpawnPoint1`、`EnemySpawnPoint2`
-
-### 3D 专有规范
-
-- **材质优先用 .tres** — 避免 SubResource 嵌入 .tscn，便于版本控制和复用
-- **PBR 工作流**：Base Color + Roughness + Metallic + Normal + AO 贴图按标准金属/粗糙度流程
-- **模型单位**：1 单位 = 1 米，导出 .glb 前确认 Blender/Maya 中比例正确
-- **光照单位**：DirectionalLight3D 用 `light_energy` 1.0~2.0、OmniLight3D 用实际流明值
 
 ## GDScript 规则
 
 ### 始终使用类型注解
 ```gdscript
 var speed: float = 200.0
-func deal_damage(target: Node3D, amount: int) -> bool:
+func deal_damage(target: Node2D, amount: int) -> bool:
 ```
 例外：`_ready()` 中的临时变量。
 
@@ -67,7 +56,7 @@ func deal_damage(target: Node3D, amount: int) -> bool:
 
 ### 提前返回优于深层嵌套
 ```gdscript
-func process_target(target: Node3D) -> void:
+func process_target(target: Node) -> void:
     if not is_instance_valid(target):
         return
     if not target.is_alive:
@@ -77,8 +66,8 @@ func process_target(target: Node3D) -> void:
 
 ### 依赖通过 @export 注入，禁止硬编码路径
 ```gdscript
-@export var hitbox: Area3D              # 正确
-var hitbox: Area3D = $"../../../Hitbox" # 错误
+@export var hitbox: Area2D              # 正确
+var hitbox: Area2D = $"../../../Hitbox" # 错误
 ```
 
 ### 用户可见字符串使用 `tr()`
@@ -103,15 +92,6 @@ label.text = tr("Press Start")
 - 每个场景应可独立运行（F6），不依赖启动关卡
 - **不手写 `.tscn`** — 场景文件一律在 Godot 编辑器中创建。仅允许编辑已有 `.tscn` 来添加脚本引用、碰撞层/掩码、分组、信号连接，**禁止**修改或编造 UID（`uid://...`），必须保留编辑器生成的原始 UID
 
-### 3D 场景最低配置
-
-每个 3D 场景必须包含以下节点才能正常渲染：
-- **WorldEnvironment** — 提供天空、环境光、色调映射、雾效
-- **Camera3D** — 当前激活的摄像机（`current = true`）
-- **至少一盏 DirectionalLight3D** — 提供主光照和阴影
-
-缺少 WorldEnvironment 时场景将显示为纯黑色（仅有默认清理色）。
-
 ## Autoload 使用
 
 仅用于：全局状态（`GameState`）、事件总线（`EventBus`）、工具函数（`Utils`）。
@@ -125,11 +105,8 @@ Autoload 禁止持有场景节点的直接引用——使用信号。
 
 - 优先使用 `create_tween()` 而非 `Tween` 节点
 - `_process()` 中用 `@onready` 缓存替代 `get_node()`
-- 优先使用 `CharacterBody3D` + 物理系统而非手动碰撞
-- 大量相同模型用 `MultiMeshInstance3D`
-- 光源数量控制在 4~8 盏以内，静态场景用 LightmapGI 烘焙
-- 阴影仅在必要光源上开启，非关键光源设 `shadow_enabled = false`
-- 远处模型使用 LOD（`GeometryInstance3D.visibility_range_*`）降低顶点数
+- 优先使用 `CharacterBody2D` + 物理系统而非手动碰撞
+- 大量相同精灵用 `MultiMeshInstance2D`
 
 ## 工作流
 
@@ -141,14 +118,11 @@ Autoload 禁止持有场景节点的直接引用——使用信号。
 
 ## 模板功能
 
-- **窗口**：1280×720，可调整大小，3D 以原生分辨率渲染（无 2D 拉伸）
-- **摄像机**：自由飞行调试模式——右击捕获鼠标 + WASD 移动 + 鼠标环顾 + 滚轮调速
-- **环境**：ProceduralSky（程序化天空）+ ACES 色调映射
-- **光照**：DirectionalLight3D 带阴影（PSSM）
-- **地面**：20×20 灰色平面 + StaticBody3D 碰撞，提供空间参照
-- **InputMap** 预配置：move（WASD/方向键）、look（手柄右摇杆）、ui_accept（空格/回车）、ui_cancel（Esc）、interact（E）
+- **窗口**：1280×720（设计分辨率），可调整大小，canvas_items stretch + expand
+- **拉伸**：expand 模式表示可见区域随窗口增大——如需固定游戏区域用 Camera2D limits 约束。如需留黑边，在项目设置中切换为 `keep`。
+- **InputMap** 预配置：move（WASD/方向键）、ui_accept（空格/回车）、ui_cancel（Esc）、interact（E）
 - **DebugOverlay**：FPS 计数器，发布版本自动隐藏
-- **主场景**：`scenes/main.tscn` — Node3D 根节点，可在此开始搭建
+- **主场景**：`scenes/main.tscn` — Node2D 根节点，可在此开始搭建
 
 ## 协作模式
 
@@ -188,7 +162,7 @@ Autoload 禁止持有场景节点的直接引用——使用信号。
 
 - 优先 `@export var` 在编辑器中指认，而非 `preload("res://...")` 硬编码路径
 - `preload` 仅用于 shader、PackedScene 等编译期确定不变的资源
-- 贴图、模型、材质等美术资源用 `@export`，方便替换且避免导出时依赖断裂
+- 贴图、音效等美术资源用 `@export`，方便替换且避免导出时依赖断裂
 
 ### 数据配置规范
 
