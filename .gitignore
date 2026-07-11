@@ -17,6 +17,10 @@ export_presets.cfg
 .vscode/
 .idea/
 
+# OS
+Thumbs.db
+ehthumbs.db
+
 # Claude Code
 .claude/
 memory/

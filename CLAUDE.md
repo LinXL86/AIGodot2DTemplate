@@ -15,6 +15,7 @@ res://
 │   └── utilities/   # 纯工具
 ├── assets/          # 美术资源
 │   ├── sprites/  sounds/  fonts/  shaders/
+├── .trae/skills/    # Godot 各领域开发参考（Skill），实现功能时优先查阅对应 skill
 └── docs/            # 文档（.gdignore 阻止 Godot 导入）
 ```
 
@@ -83,12 +84,24 @@ label.text = tr("Press Start")
 ### 信号连接
 - 代码连接的信号集中在 `_ready()` 中
 - 编辑器连接的信号使用 `_on_<node>_<signal>` 命名
+- 信号名用过去式描述已发生事件：`health_changed`、`enemy_died`（非 `update_health`、`die`）
+
+### 运行时安全
+- 动态创建的节点用 `queue_free()` 释放，禁止直接 `free()`（避免 use-after-free）
+- `await` 之后节点可能已被释放，恢复前检查 `is_instance_valid(self)`
+- 重写 `_ready()` / `_process()` 等虚方法时，若父类有实现则首行调用 `super()`
+- `@onready` 变量在 `_enter_tree()` 期间为 null，仅在 `_ready()` 及之后可用
+
+## 资源管理
+- 编译时已知路径用 `preload("res://...")`；运行时动态路径用 `load(path)`
+- 项目资源只读用 `res://`，用户数据（存档/配置）用 `user://`
 
 ## 场景设计
 
 - **向下调用，向上通知** — 父节点直接调用子节点方法；子节点通过信号通知父节点。兄弟节点通过共同祖先或 EventBus 通信。
 - **单一职责** — 一个场景只做一件事。如果需要用"和"来描述它，就该拆分。
 - **@export 注入** — 禁止硬编码节点路径
+- **组合优于继承** — 可复用行为拆成独立子场景（如 HealthComponent），通过 @export 组合，而非深 extends 链
 - 每个场景应可独立运行（F6），不依赖启动关卡
 - **不手写 `.tscn`** — 场景文件一律在 Godot 编辑器中创建和编辑
 
@@ -105,6 +118,8 @@ Autoload 禁止持有场景节点的直接引用——使用信号。
 
 - 优先使用 `create_tween()` 而非 `Tween` 节点
 - `_process()` 中用 `@onready` 缓存替代 `get_node()`
+- 无需逐帧更新时调用 `set_process(false)` 禁用 `_process()`
+- `_process()` 中字符串比较用 `&"run"`（StringName 字面量）而非 `"run"`（避免每帧 String 分配）
 - 优先使用 `CharacterBody2D` + 物理系统而非手动碰撞
 - 大量相同精灵用 `MultiMeshInstance2D`
 
@@ -123,3 +138,26 @@ Autoload 禁止持有场景节点的直接引用——使用信号。
 - **InputMap** 预配置：move（WASD/方向键）、ui_accept（空格/回车）、ui_cancel（Esc）、interact（E）
 - **DebugOverlay**：FPS 计数器，发布版本自动隐藏
 - **主场景**：`scenes/main.tscn` — Node2D 根节点，可在此开始搭建
+
+## Skill 索引
+
+项目 `.trae/skills/` 提供 Godot 各领域开发参考，实现功能时 AI 自动加载对应 skill：
+
+| 功能领域 | Skill |
+|---------|-------|
+| 2D 核心（TileMap/视差/光照） | 2d-essentials |
+| 玩家移动/输入 | player-controller, input-handling |
+| UI / HUD | godot-ui, hud-system |
+| 动画/过渡 | animation-system, tween-animation |
+| 物理/碰撞 | physics-system |
+| AI / 导航 | ai-navigation |
+| 状态机 | state-machine |
+| 性能优化 | godot-optimization |
+| 调试 | godot-debugging |
+| 存档 | save-load |
+| 测试 | godot-testing |
+| 着色器 | shader-basics |
+| 背包/道具 | inventory-system |
+| 多人联机 | multiplayer-basics, multiplayer-sync |
+| 本地化 | localization |
+| 移动端 | mobile-development |
